@@ -1,11 +1,15 @@
-let mongoose = require("mongoose")
-let con_string = "mongodb+srv://apoorvavarshney23cse:0QVCiw3oIE9UecFE@cluster0.e0uvy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+const mongoose = require("mongoose");
 
-let dbconnect = ()=>{
- try{  mongoose.connect(con_string, {})
-console.log("databse is connected")
-}
- catch(err)
- { console.log(err)}
-}
-module.exports = dbconnect
+const con_string = "mongodb+srv://apoorvavarshney23cse:0QVCiw3oIE9UecFE@cluster0.e0uvy.mongodb.net/ProductsDB?retryWrites=true&w=majority";
+
+const dbconnect = async () => {
+    try {
+        // Connecting to MongoDB with the updated options
+        await mongoose.connect(con_string);
+        console.log("Database is connected");
+    } catch (err) {
+        console.error("Database connection error:", err);
+    }
+};
+
+module.exports = dbconnect;

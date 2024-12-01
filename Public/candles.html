@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Candles</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
@@ -25,22 +25,21 @@
             padding: 15px 30px;
         }
 
-        .navbar ul {
-            list-style-type: none;
+        .navbar-links {
+            display: flex;
         }
 
-        .navbar ul li {
-            display: inline;
+        .navbar-link {
             margin-right: 20px;
         }
 
-        .navbar ul li a {
+        .navbar-link a {
             text-decoration: none;
             color: white;
             font-size: 1.2rem;
         }
 
-        .navbar ul li a:hover {
+        .navbar-link a:hover {
             color: grey;
         }
 
@@ -58,10 +57,6 @@
 
         .nav-icons a:hover {
             color: grey;
-        }
-
-        .nav-icons i {
-            margin-left: 20px;
         }
 
         .background {
@@ -93,13 +88,13 @@
         }
 
         .overlay h1 {
-            font-size: 6rem;
+            font-size: 4rem;
             font-weight: bold;
             opacity: 0.9;
         }
 
         .overlay p {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             opacity: 0.9;
         }
 
@@ -181,47 +176,52 @@
         }
 
         .add-to-cart {
-    background-color: rgba(170, 123, 151, 0.659);
-    padding: 5px;
-    border-radius: 3px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.3s ease;
-}
+            background-color: rgba(170, 123, 151, 0.659);
+            padding: 5px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
 
-.add-to-cart:hover {
-    background-color: rgba(170, 123, 151, 1);
-    transform: scale(1.05);
-}
+        .add-to-cart:hover {
+            background-color: rgba(170, 123, 151, 1);
+            transform: scale(1.05);
+        }
 
-.view-product {
-    background-color: rgba(170, 123, 151, 0.659);
-    padding: 5px;
-    border-radius: 3px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.3s ease;
-}
+        .view-product {
+            background-color: rgba(170, 123, 151, 0.659);
+            padding: 5px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
 
-.view-product:hover {
-    background-color: rgba(170, 123, 151, 1);
-    transform: scale(1.05);
-}
+        .view-product:hover {
+            background-color: rgba(170, 123, 151, 1);
+            transform: scale(1.05);
+        }
 
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 15px 20px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
-
     <nav class="navbar">
-        <ul>
-            <li><a href="home.html">Home</a></li>
-            <li><a href="clothing.html">Clothing</a></li>
-            <li><a href="accessories.html">Accessories</a></li>
-        </ul>
+        <div class="navbar-links">
+            <div class="navbar-link"><a href="home.html">Home</a></div>
+            <div class="navbar-link"><a href="clothing.html">Clothing</a></div>
+            <div class="navbar-link"><a href="accessories.html">Accessories</a></div>
+        </div>
 
         <div class="nav-icons">
             <a href="cart.html"><i class="fas fa-shopping-cart"></i></a>
             <a href="profile.html"><i class="fas fa-user"></i></a>
         </div>
-
     </nav>
 
     <div class="background">
@@ -229,34 +229,36 @@
             <h1>Candles</h1>
             <p>All your favourite scents from small businesses!</p>
         </div>
+
         <div class="search-bar">
-            <input type="text" placeholder="Search...">
-            <button><img src="SearchIcon.jpg" alt="Search"></button>
+            <input type="text" id="searchInput" placeholder="Search...">
+            <button id="searchButton"><img src="SearchIcon.jpg" alt="Search"></button>
         </div>
     </div>
 
-    <main class="product-container">
-        <!-- Product structure will be populated dynamically -->
-        <section class="product">
-            <img src="" alt="" class="product-image">
-            <h2 class="product-name"></h2>
-            <p class="subtext product-brand"></p>
-            <p class="price product-price"></p>
-            <div class="button-container">
-                <button class="view-product">View Product</button>
-                <button class="add-to-cart">Add to Cart</button>
-            </div>
-        </section>
-    </main>
-    
-   
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        fetch('products.json')
-            .then(response => response.json())
-            .then(products => {
+    <main class="product-container"></main>
+
+    <footer>
+        <p>&copy; 2024 OneStopShop. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            let productsData = [];
+
+            const fetchProducts = async () => {
+                try {
+                    const response = await fetch('products.json');
+                    productsData = await response.json();
+                    displayProducts(productsData);
+                } catch (error) {
+                    console.error('Error loading products:', error);
+                }
+            };
+
+            const displayProducts = (products) => {
                 const productContainer = document.querySelector('.product-container');
-                productContainer.innerHTML = ''; 
+                productContainer.innerHTML = '';
 
                 products.forEach(product => {
                     const productClone = document.createElement('section');
@@ -273,48 +275,64 @@
                         </div>
                     `;
 
-                    const viewProductButton = productClone.querySelector('.view-product');
-                    const productPage = product.productPage;
-                    viewProductButton.addEventListener('click', function() {
-                        window.location.href = productPage; 
+                    productClone.querySelector('.view-product').addEventListener('click', () => {
+                        window.location.href = product.productPage;
                     });
 
-                    const addToCartButton = productClone.querySelector('.add-to-cart');
-                    addToCartButton.setAttribute('data-name', product.name);
-                    addToCartButton.setAttribute('data-price', product.price);
-                    addToCartButton.setAttribute('data-image', product.image);
-                    addToCartButton.addEventListener('click', () => {
-                        const productName = product.name;
-                        const productPrice = parseFloat(product.price.replace('rs', '').trim());
-                        const productImage = product.image;
-
+                    productClone.querySelector('.add-to-cart').addEventListener('click', async () => {
                         const cartProduct = {
-                            name: productName,
-                            price: productPrice,
-                            image: productImage,
+                            productName: product.name,
+                            price: parseFloat(product.price.replace('rs', '').trim()),
+                            image: product.image,
                             quantity: 1
                         };
 
-                        let cart = localStorage.getItem('cart');
-                        cart = cart ? JSON.parse(cart) : [];
+                        try {
+                            const response = await fetch('/api/cart', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(cartProduct)
+                            });
 
-                        const existingProductIndex = cart.findIndex(item => item.name === productName);
-
-                        if (existingProductIndex >= 0) {
-                            cart[existingProductIndex].quantity += 1;
-                        } else {
-                            cart.push(cartProduct);
+                            const result = await response.json();
+                            if (response.ok) {
+                                alert(result.message);
+                            } else {
+                                throw new Error(result.message);
+                            }
+                        } catch (error) {
+                            console.error('Error adding to cart:', error);
+                            alert('Failed to add item to cart. Please try again.');
                         }
-
-                        localStorage.setItem('cart', JSON.stringify(cart));
-                        alert(`${productName} has been added to the cart.`);
                     });
 
                     productContainer.appendChild(productClone);
                 });
-            })
-            .catch(error => console.error('Error loading products:', error));
-    });
-</script>
+            };
+
+            document.getElementById('searchButton').addEventListener('click', () => {
+                const query = document.getElementById('searchInput').value.trim().toLowerCase();
+
+                if (!query) {
+                    alert('Please enter a search term.');
+                    displayProducts(productsData);
+                    return;
+                }
+
+                const filteredProducts = productsData.filter(product =>
+                    product.name.toLowerCase().includes(query) ||
+                    product.brand.toLowerCase().includes(query)
+                );
+
+                if (filteredProducts.length === 0) {
+                    document.querySelector('.product-container').innerHTML = '<p>No products found.</p>';
+                } else {
+                    displayProducts(filteredProducts);
+                }
+            });
+
+            await fetchProducts();
+        });
+    </script>
 </body>
 </html>

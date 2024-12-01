@@ -139,6 +139,14 @@
         .signin-link a:hover {
             text-decoration: underline;
         }
+
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 15px 20px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -193,21 +201,54 @@
         </div>
     </div>
 
-    <script>
-        document.getElementById('signup-form').addEventListener('submit', function(e) {
-            e.preventDefault();
+    <footer>
+        <p>&copy; 2024 OneStopShop. All Rights Reserved.</p>
+    </footer>
 
+    <script>
+        document.getElementById('signup-form').addEventListener('submit', async function (e) {
+            e.preventDefault(); 
+        
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
             const phone = document.getElementById('phone').value;
             const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const terms = document.getElementById('terms').checked;
+    
+            if (!terms) {
+                alert('You must agree to the Terms & Conditions.');
+                return;
+            }
+    
+            if (password !== confirmPassword) {
+                alert('Passwords do not match!');
+                return;
+            }
+    
+            try {
 
-            localStorage.setItem('user', JSON.stringify({ name, email, phone, password }));
-            console.log('User data saved:', user);
-
-            window.location.href = 'profile.html';
+                const response = await fetch('/api/auth/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, phone, password, confirmPassword }), 
+                });
+    
+                const data = await response.json(); 
+    
+                if (response.status === 201) {
+                    alert(data.message); 
+                    window.location.href = 'login.html'; 
+                } else {
+                    alert(data.message); 
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while signing up. Please try again later.');
+            }
         });
     </script>
-
+    
+    
 </body>
 </html>

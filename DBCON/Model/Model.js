@@ -1,27 +1,14 @@
-let mongoose = require("mongoose")
+const mongoose = require("mongoose");
 
-let productschema = new mongoose.Schema({
-name: { type: String, required: true },
-category: { type: String, required: true },
-price: { type: String, required: true },
-brand: { type: String },
-productPage: { type: String },
-image: { type: String }
+// Define User Schema
+const userSchema = new mongoose.Schema({
+    name: { type: String, required: true }, // Full name
+    email: { type: String, required: true, unique: true }, // Email address
+    phone: { type: String, required: true }, // Phone number
+    password: { type: String, required: true }, // Password
 });
 
-let Product = new mongoose.model('Product', productschema);
+// Create User Model
+const User = mongoose.model("User", userSchema);
 
-let createDoc =()=>{
-    let product1 = new Product(
-    {name: "Nails",
-        category: "Acessories",
-        price: "368 rs",
-        brand: "Jewels",
-        image: "clothes.jpg"
-    }
-    
-)
-product1.save()
-}
-
-module.exports = createDoc
+module.exports = User;

@@ -15,7 +15,7 @@
         body {
             font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
             background-color: #f4f4f4;
-            background-image: URL('wow.jpg');
+            background-image: url('wow.jpg');
         }
 
         .navbar {
@@ -94,6 +94,8 @@
         .cart-item img {
             width: 100px;
             height: auto;
+            object-fit: cover;
+            border-radius: 5px;
         }
 
         .quantity-input {
@@ -137,6 +139,14 @@
         .checkout-btn:hover {
             background-color: #218838;
         }
+
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 15px 20px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -159,6 +169,7 @@
         <table>
             <thead>
                 <tr>
+                    <th>Image</th>
                     <th>Product</th>
                     <th>Quantity</th>
                     <th>Price</th>
@@ -167,7 +178,7 @@
                 </tr>
             </thead>
             <tbody id="cart-items">
-                <!-- Cart items will be injected here by JavaScript -->
+
             </tbody>
         </table>
 
@@ -177,79 +188,121 @@
         </div>
     </div>
 
-</body>
+    <footer>
+        <p>&copy; 2024 OneStopShop. All Rights Reserved.</p>
+    </footer>
 
     <script>
-        function displayCart() {
-            const cart = JSON.parse(localStorage.getItem('cart')) || [];
-            const cartItems = document.getElementById('cart-items');
-            const cartTotal = document.getElementById('cart-total');
+        document.addEventListener('DOMContentLoaded', async () => {
+            const cartContainer = document.querySelector('#cart-items');
+            const totalContainer = document.querySelector('#cart-total');
+            const checkoutButton = document.querySelector('#checkout-btn');
 
-            let total = 0;
+            const updateCartUI = async () => {
+                try {
+                    const response = await fetch('/api/cart', { method: 'GET' });
+                    const cartItems = await response.json();
 
-            cartItems.innerHTML = ''; 
+                    if (!cartItems.length) {
+                        cartContainer.innerHTML = '<tr><td colspan="6">Your cart is empty.</td></tr>';
+                        totalContainer.textContent = 'Total: 0rs';
+                        return;
+                    }
 
-            cart.forEach((product, index) => {
-                const itemTotal = product.price * product.quantity;
-                total += itemTotal;
+                    cartContainer.innerHTML = '';
+                    let totalPrice = 0;
 
-                cartItems.innerHTML += `
-                    <tr class="cart-item">
-                        <td>
-                            <img src="${product.image}" alt="${product.name}" width="100">
-                            <p>${product.name}</p>
-                        </td>
-                        <td>
-                            <input class="quantity-input" type="number" value="${product.quantity}" min="1" data-index="${index}">
-                        </td>
-                        <td>${product.price}rs</td>
-                        <td>${itemTotal}rs</td>
-                        <td>
-                            <button class="remove-btn" data-index="${index}">Remove</button>
-                        </td>
-                    </tr>
-                `;
+                    cartItems.forEach((item) => {
+                        totalPrice += item.total;
+
+                        const cartItemHTML = `
+                            <tr class="cart-item">
+                                <td><img src="${item.image}" alt="${item.productName}" class="cart-item-img"></td>
+                                <td>${item.productName}</td>
+                                <td>
+                                    <input type="number" class="quantity-input" value="${item.quantity}" min="1" data-id="${item._id}">
+                                </td>
+                                <td>${item.price}rs</td>
+                                <td>${item.total}rs</td>
+                                <td><button class="remove-btn" data-id="${item._id}">Remove</button></td>
+                            </tr>
+                        `;
+                        cartContainer.insertAdjacentHTML('beforeend', cartItemHTML);
+                    });
+
+                    totalContainer.textContent = `Total: ${totalPrice}rs`;
+                    localStorage.setItem('totalPrice', totalPrice); 
+
+                    attachEventListeners();
+                } catch (error) {
+                    console.error('Error fetching cart items:', error);
+                    cartContainer.innerHTML = '<tr><td colspan="6">Error loading cart items. Please try again later.</td></tr>';
+                }
+            };
+
+            const attachEventListeners = () => {
+
+                document.querySelectorAll('.quantity-input').forEach((input) => {
+                    input.addEventListener('change', async (e) => {
+                        const itemId = e.target.getAttribute('data-id');
+                        const newQuantity = parseInt(e.target.value, 10);
+
+                        if (newQuantity < 1) {
+                            alert('Quantity cannot be less than 1.');
+                            e.target.value = 1;
+                            return;
+                        }
+
+                        try {
+                            const response = await fetch(`/api/cart/${itemId}`, {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ quantity: newQuantity }),
+                            });
+
+                            const result = await response.json();
+                            if (response.ok) {
+                                alert(result.message);
+                                updateCartUI();
+                            } else {
+                                throw new Error(result.message);
+                            }
+                        } catch (error) {
+                            console.error('Error updating quantity:', error);
+                            alert('Failed to update quantity. Please try again.');
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.remove-btn').forEach((button) => {
+                    button.addEventListener('click', async (e) => {
+                        const itemId = e.target.getAttribute('data-id');
+
+                        try {
+                            const response = await fetch(`/api/cart/${itemId}`, { method: 'DELETE' });
+                            const result = await response.json();
+                            if (response.ok) {
+                                alert(result.message);
+                                updateCartUI();
+                            } else {
+                                throw new Error(result.message);
+                            }
+                        } catch (error) {
+                            console.error('Error removing item:', error);
+                            alert('Failed to remove item. Please try again.');
+                        }
+                    });
+                });
+            };
+
+            checkoutButton.addEventListener('click', () => {
+                const total = totalContainer.textContent.replace('Total: ', '').replace('rs', '').trim();
+                localStorage.setItem('totalPrice', total);
+                window.location.href = 'payment.html';
             });
 
-            cartTotal.textContent = `Total: ${total}rs`;
-
-
-            document.querySelectorAll('.quantity-input').forEach(input => {
-                input.addEventListener('change', updateQuantity);
-            });
-
-            document.querySelectorAll('.remove-btn').forEach(button => {
-                button.addEventListener('click', removeItem);
-            });
-        }
-
-        function updateQuantity(event) {
-            const index = event.target.getAttribute('data-index');
-            let cart = JSON.parse(localStorage.getItem('cart'));
-            const newQuantity = event.target.value;
-
-            cart[index].quantity = parseInt(newQuantity);
-            localStorage.setItem('cart', JSON.stringify(cart));
-            displayCart();
-        }
-
-        function removeItem(event) {
-            const index = event.target.getAttribute('data-index');
-            let cart = JSON.parse(localStorage.getItem('cart'));
-
-            cart.splice(index, 1); 
-            localStorage.setItem('cart', JSON.stringify(cart));
-            displayCart();
-        }
-
-
-        document.addEventListener('DOMContentLoaded', displayCart);
-
-
-document.getElementById('checkout-btn').addEventListener('click', () => {
-    window.location.href = 'payment.html';
-});
-
+            updateCartUI();
+        });
     </script>
-
+</body>
 </html>
